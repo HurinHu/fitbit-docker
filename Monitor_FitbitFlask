@@ -1,0 +1,28 @@
+#!/bin/python3
+import pytz, datetime
+import os
+import subprocess
+import re
+import time
+
+def findThisProcess( process_name ):
+  ps = subprocess.Popen("ps -eaf | grep '"+process_name+"'", shell=True, stdout=subprocess.PIPE)
+  output = ps.stdout.read()
+  ps.stdout.close()
+  ps.wait()
+  return output
+
+# This is the function you can use
+def isThisRunning( process_name ):
+  output = findThisProcess( process_name )
+  output = str(output).split('\\n')
+  length = len(process_name)
+  for item in output[0].split('\n'):
+    if item[-1*length:] == process_name and item[-1*length-5:] != 'grep '+process_name:
+      return  True
+  return False
+
+while True:
+  if isThisRunning('--app=fitbit.py run') == False:
+    os.system('cd /home && flask --app=fitbit.py run --host=0.0.0.0 --port=10081')
+  time.sleep(15)

@@ -1,0 +1,5 @@
+#!/bin/bash
+docker build -t fitbit-flask .
+docker container kill $(docker ps | grep "fitbit-flask" | awk '{ print $1 }')
+docker rm $(docker ps -a | grep "fitbit-flask" | awk '{ print $1 }')
+docker run -d -it --name fitbit-flask -p 10081:10081 --restart=always fitbit-flask
