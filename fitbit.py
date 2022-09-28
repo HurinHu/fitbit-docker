@@ -3,6 +3,11 @@ from flask_cors import CORS
 import psycopg2
 import datetime
 import pytz
+import paho.mqtt.client as mqtt
+
+client = mqtt.Client()
+client.username_pw_set(username="hurin",password="nora")
+client.connect("192.168.1.180", 1883, 60)
 
 app = Flask(__name__)
 
@@ -32,4 +37,8 @@ def data():
   e = datetime.datetime.now(pytz.timezone('Pacific/Auckland'))
   if int(rate) != -999:
     saveTransaction(name, rate, accelerometer, barometer, e.strftime("%Y-%m-%d %H:%M:%S"))
+  if int(rate) >= 110:
+    client.publish('fitbit', 'Doris\'s HR too high '+str(rate))
+  if int(rate) <= 50:
+    client.publish('fitbit', 'Doris\'s HR too low '+str(rate))
   return 'ok'
