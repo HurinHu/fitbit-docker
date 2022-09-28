@@ -4,7 +4,7 @@ do
 	monitor=`ps aux | grep -i "Monitor_FitbitFlask" | grep -v "grep" | wc -l`
 	if [[ $monitor = 0 ]]
 		then
-			nohup /home/Monitor_FitbitFlask &
+			/home/Monitor_FitbitFlask 
 	fi
 	sleep 5
 done

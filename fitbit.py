@@ -6,8 +6,8 @@ import pytz
 import paho.mqtt.client as mqtt
 
 client = mqtt.Client()
-client.username_pw_set(username="hurin",password="nora")
-client.connect("192.168.1.180", 1883, 60)
+client.username_pw_set(username="",password="")
+client.connect("", 1883, 10)
 
 app = Flask(__name__)
 
@@ -39,6 +39,8 @@ def data():
     saveTransaction(name, rate, accelerometer, barometer, e.strftime("%Y-%m-%d %H:%M:%S"))
   if int(rate) >= 110:
     client.publish('fitbit', 'Doris\'s HR too high '+str(rate))
-  if int(rate) <= 50:
+  elif int(rate) != -999 and int(rate) <= 50:
     client.publish('fitbit', 'Doris\'s HR too low '+str(rate))
+  elif int(rate) != -999:
+    client.publish('fitbit-status', 'HR: '+str(rate)+' Time:'+e.strftime("%Y-%m-%d %H:%M:%S"))
   return 'ok'
