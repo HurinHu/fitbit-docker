@@ -3,18 +3,43 @@ from flask_cors import CORS
 import psycopg2
 import datetime
 import pytz
-import paho.mqtt.client as mqtt
-
-client = mqtt.Client()
-client.username_pw_set(username="",password="")
-client.connect("", 1883, 10)
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText                    
+from email.mime.application import MIMEApplication
+import timeout_decorator
 
 app = Flask(__name__)
 
 CORS(app)
 
+host = ""
+port = 465
+email = ""
+admin = ""
+password = ""
+to = ""
+count = 0
+
+def sendEmail(info):
+    html = "<html><head><title>Error</title></head><body style='font-family: Comic Sans MS'><p>"+info+"</p><br><p>Kind regards, <br>Iceloof Inc.<br><a href=\"https://www.iceloof.com\">https://www.iceloof.com</a></p></body></html>"
+    print('Email send to  '+html)
+    msg = MIMEMultipart('mixed')
+    msg['Subject'] = "Fitbit Alert"
+    msg['From'] = "Iceloof Admin<"+admin+">"
+    msg['Bcc'] = to
+    msg['X-Priority'] = '1'
+    part2 = MIMEText(html, 'html')
+    msg.attach(part2)
+    s = smtplib.SMTP_SSL(host=host,port=port)
+    s.ehlo()
+    s.login(email,password)
+    s.sendmail(msg['From'], msg['Bcc'], msg.as_string())
+    s.quit()
+    print('Email send to '+to)
+
 def saveTransaction(name, rate, accelerometer, barometer, time):
-    mydb = psycopg2.connect( host='', user='', password='', dbname="postgres", options="-c search_path=dbo,fitbit" )
+    mydb = psycopg2.connect( host='', user='', password='', dbname="postgres", options="-c search_path=dbo," )
     mycursor = mydb.cursor()
     sql = 'INSERT INTO realtime ("user", rate, accelerometer, barometer, "time") VALUES (%s, %s, %s, %s, %s)'
     val = (name, rate, accelerometer, barometer, time)
@@ -24,6 +49,7 @@ def saveTransaction(name, rate, accelerometer, barometer, time):
     
 @app.route('/')
 def hello():
+    #sendEmail('Doris\'s HR too high ')
     return 'Hello, World!'
 
 @app.route('/api/data')
@@ -37,10 +63,24 @@ def data():
   e = datetime.datetime.now(pytz.timezone('Pacific/Auckland'))
   if int(rate) != -999:
     saveTransaction(name, rate, accelerometer, barometer, e.strftime("%Y-%m-%d %H:%M:%S"))
-  if int(rate) >= 110:
-    client.publish('fitbit', 'Doris\'s HR too high '+str(rate))
-  elif int(rate) != -999 and int(rate) <= 50:
-    client.publish('fitbit', 'Doris\'s HR too low '+str(rate))
-  elif int(rate) != -999:
-    client.publish('fitbit-status', 'HR: '+str(rate)+' Time:'+e.strftime("%Y-%m-%d %H:%M:%S"))
+  if int(rate) >= 120 and int(rate) <= 140:
+    if count == 0 or count > 19:
+      sendEmail('Doris\'s HR too high '+str(rate))
+      count = 1
+    else:
+      count += 1
+      if count >= 19:
+        count = 0
+  elif int(rate) != -999 and int(rate) <= 45:
+    if count == 0 or count > 19:
+      sendEmail('Doris\'s HR too low '+str(rate))
+      count = 1
+    else:
+      count += 1
+      if count >= 19:
+        count = 0
+  else:
+    count += 1
+    if count >= 240:
+      count = 0
   return 'ok'
