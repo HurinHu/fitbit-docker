@@ -13,17 +13,17 @@ app = Flask(__name__)
 
 CORS(app)
 
-host = ""
+host = "hwsmtp.exmail.qq.com"
 port = 465
-email = ""
-admin = ""
-password = ""
-to = ""
+email = "admin@iceloof.com"
+admin = "admin@iceloof.com"
+password = "pyqhaq-qyxwo2-ciGnyh"
+to = "hurin@live.ca"
 count = 0
 
 def sendEmail(info):
     html = "<html><head><title>Error</title></head><body style='font-family: Comic Sans MS'><p>"+info+"</p><br><p>Kind regards, <br>Iceloof Inc.<br><a href=\"https://www.iceloof.com\">https://www.iceloof.com</a></p></body></html>"
-    print('Email send to  '+html)
+    print('Email send to hurin@live.ca '+html)
     msg = MIMEMultipart('mixed')
     msg['Subject'] = "Fitbit Alert"
     msg['From'] = "Iceloof Admin<"+admin+">"
@@ -39,7 +39,7 @@ def sendEmail(info):
     print('Email send to '+to)
 
 def saveTransaction(name, rate, accelerometer, barometer, time):
-    mydb = psycopg2.connect( host='', user='', password='', dbname="postgres", options="-c search_path=dbo," )
+    mydb = psycopg2.connect( host='192.168.1.180', user='fitbit', password='fitbit', dbname="postgres", options="-c search_path=dbo,fitbit" )
     mycursor = mydb.cursor()
     sql = 'INSERT INTO realtime ("user", rate, accelerometer, barometer, "time") VALUES (%s, %s, %s, %s, %s)'
     val = (name, rate, accelerometer, barometer, time)
